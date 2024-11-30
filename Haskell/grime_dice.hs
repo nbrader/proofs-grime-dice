@@ -61,8 +61,9 @@ pmfTiedOrWon pmfs = [sum [if valueIsEqualToMaxPredicate !! i then prob else 0 | 
         maxes = map maximum jointOutcomes
         valueIsEqualToMaxListOfPredicates = zipWith (\maxVal jOutcomes -> map (== maxVal) jOutcomes) maxes jointOutcomes
 
-test3PlayerGames = mapM_ print $ map realToFrac $ pmfTiedOrWon allDicePMFs
-
+probabilityOfWinningOrTyingInGamesOf5WithAllDifferentColouredDice = mapM_ print $ map realToFrac $ pmfTiedOrWon allDicePMFs
+probabilityOfWinningOrTyingInGamesOf10WithPairOfEachColourDice = mapM_ print $ map realToFrac $ pmfTiedOrWon (allDicePMFs ++ allDicePMFs)
+probabilityOfWinningOrTyingInGamesOf3WithRedAndYellowAndGreen = mapM_ print $ map realToFrac $ pmfTiedOrWon [redDie, yellowDie, greenDie]
 
 
 sectionTitle :: String -> IO ()
