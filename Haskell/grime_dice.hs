@@ -89,8 +89,45 @@ testAllPairsOutcomeComparison dice = do
         print pmfComparison
 
 -- Main function to test validation and joint probabilities
-main :: IO ()
-main = do
+main1 :: IO ()
+main1 = do
     validateDice allDice
     putStrLn ""
     testAllPairsOutcomeComparison allDice
+
+-- Generate a TGF representation of the graph with labeled edges
+generateTGF :: [(DieColours, Die Rational Rational)] -> String
+generateTGF dice =
+    let nodes = nub $ map fst dice
+        edges =
+            [ (c1, c2, realToFrac beatsOrTies)
+            | (c1, d1) <- dice,
+              (c2, d2) <- dice,
+              let pmfComparison = pmfOutcomeComparison d1 d2,
+              let beatsOrTies =
+                      Map.findWithDefault 0 FirstGreater pmfComparison +
+                      Map.findWithDefault 0 Tie pmfComparison,
+              beatsOrTies > 0.5  -- "more than half" condition
+            ]
+        nodeSection = unlines [show i ++ " " ++ show color | (i, color) <- zip [1 ..] nodes]
+        edgeSection =
+            unlines
+                [ show (nodeIndex c1) ++ " " ++ show (nodeIndex c2) ++ " " ++ show beatsOrTies
+                | (c1, c2, beatsOrTies) <- edges
+                ]
+        nodeIndex color = case lookup color (zip nodes [1 ..]) of
+            Just idx -> idx
+            Nothing -> error "Color not found in nodes"
+     in nodeSection ++ "#\n" ++ edgeSection
+
+-- Print the graph in TGF format
+printTGF :: String -> IO ()
+printTGF tgf = do
+    sectionTitle "Trivial Graph Format (TGF) with Labeled Edges:"
+    putStrLn tgf
+
+-- Updated main to include TGF generation and printing
+main :: IO ()
+main = do
+    let tgf = generateTGF allDice
+    printTGF tgf
