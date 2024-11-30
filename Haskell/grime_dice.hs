@@ -1,13 +1,11 @@
 #!/usr/bin/env stack
 -- stack --resolver lts-20.5 ghci --package QuickCheck --package containers-0.6.5.1
 import Test.QuickCheck
-import Data.List (nub, sortBy)
+import Data.List (nub)
 import qualified Data.Map as Map
 import Data.Map (Map)
 import Control.Monad
 import Data.Ratio ((%))
-import Control.Applicative
-import Data.Ord (comparing)
 
 type Prob s = s
 type Val v = v
@@ -58,7 +56,7 @@ getJointFromList = foldr1 getJoint
 -- pmfTiedOrWon :: (Ord v, Num s) => [PMF v s] -> [Bool]
 pmfTiedOrWon pmfs = [sum [if valueIsEqualToMaxPredicate !! i then prob else 0 | (valueIsEqualToMaxPredicate, prob) <- zip valueIsEqualToMaxListOfPredicates (Map.elems (pmfMap jointPMF))] | i <- diceIndices]
   where jointPMF = getJointFromList pmfs
-        diceIndices = [0 .. (length pmfs - 1)]
+        diceIndices = [0 .. length pmfs - 1]
         jointOutcomes = Map.keys (pmfMap jointPMF)
         maxes = map maximum jointOutcomes
         valueIsEqualToMaxListOfPredicates = zipWith (\maxVal jOutcomes -> map (== maxVal) jOutcomes) maxes jointOutcomes
@@ -69,9 +67,9 @@ test3PlayerGames = mapM_ print $ map realToFrac $ pmfTiedOrWon allDicePMFs
 
 sectionTitle :: String -> IO ()
 sectionTitle msg = do
-    putStrLn $ getZipList (ZipList (repeat '-') <* ZipList msg)
+    putStrLn $ replicate (length msg) '-'
     putStrLn msg
-    putStrLn $ getZipList (ZipList (repeat '-') <* ZipList msg)
+    putStrLn $ replicate (length msg) '-'
 
 -- Test PMF over outcome comparisons for all pairs of dice
 validateDice :: [(DieColours, PMF Rational Rational)] -> IO ()
