@@ -6,6 +6,7 @@ import qualified Data.Map as Map
 import Data.Map (Map)
 import Control.Monad
 import Data.Ratio ((%))
+import Control.Applicative
 
 type Prob s = s
 type Val v = v
@@ -33,6 +34,7 @@ data DieColours = Red | Green | Blue | Purple | Yellow deriving (Eq, Show, Enum,
 
 allDieColours :: [DieColours]
 allDieColours = [minBound .. maxBound]
+allDice = zip allDieColours [redDie, greenDie, blueDie, purpleDie, yellowDie]
 
 -- Enumeration for outcomes of dice comparison
 data Outcome = FirstGreater | SecondGreater | Tie deriving (Eq, Show, Ord)
@@ -63,9 +65,24 @@ pmfOutcomeComparison (Die pmf1) (Die pmf2) =
                             EQ -> Tie
         ]
 
+sectionTitle :: String -> IO ()
+sectionTitle msg = do
+    putStrLn $ getZipList (ZipList (repeat '-') <* ZipList msg)
+    putStrLn msg
+    putStrLn $ getZipList (ZipList (repeat '-') <* ZipList msg)
+
+-- Test PMF over outcome comparisons for all pairs of dice
+validateDice :: [(DieColours, Die Rational Rational)] -> IO ()
+validateDice dice = do
+    sectionTitle "Validating dice..."
+    forM_ allDice $ \(color, die) -> do
+        let isValid = validateDie die
+        putStrLn $ show color ++ ": " ++ if isValid then "Valid" else "Invalid"
+
 -- Test PMF over outcome comparisons for all pairs of dice
 testAllPairsOutcomeComparison :: [(DieColours, Die Rational Rational)] -> IO ()
 testAllPairsOutcomeComparison dice = do
+    sectionTitle "Testing outcome comparison for all pairs:"
     forM_ [(c1, d1, c2, d2) | (c1, d1) <- dice, (c2, d2) <- dice] $ \(c1, d1, c2, d2) -> do
         let pmfComparison = pmfOutcomeComparison d1 d2
         putStrLn $ "PMF over outcomes (" ++ show c1 ++ " vs " ++ show c2 ++ "):"
@@ -74,10 +91,6 @@ testAllPairsOutcomeComparison dice = do
 -- Main function to test validation and joint probabilities
 main :: IO ()
 main = do
-    let dice = zip allDieColours [redDie, greenDie, blueDie, purpleDie, yellowDie]
-    putStrLn "Validating dice..."
-    forM_ dice $ \(color, die) -> do
-        let isValid = validateDie die
-        putStrLn $ show color ++ ": " ++ if isValid then "Valid" else "Invalid"
-    putStrLn "\nTesting outcome comparison for all pairs:"
-    testAllPairsOutcomeComparison dice
+    validateDice allDice
+    putStrLn ""
+    testAllPairsOutcomeComparison allDice
